@@ -113,7 +113,7 @@
             <input type="number" id="seconds" min="0" max="59" placeholder="SS">
         </div>
         <div id="timer-display" class="timer-display">
-            <div>
+            <div id="time-remaining-container">
                 <h2>Time Remaining</h2>
                 <p id="time-remaining">00:00:00</p>
             </div>
@@ -151,6 +151,7 @@
         const startPauseBtn = document.getElementById('start-pause-btn');
         const resetBtn = document.getElementById('reset-btn');
         const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const timeRemainingContainer = document.getElementById('time-remaining-container');
         const timeRemainingEl = document.getElementById('time-remaining');
         const currentSessionTimeEl = document.getElementById('current-session-time');
         const totalTimeWorkedEl = document.getElementById('total-time-worked');
@@ -159,13 +160,18 @@
 
         function startTimer() {
             if (!isRunning) {
-                if (timeRemaining === 0) {
-                    const hours = parseInt(document.getElementById('hours').value) || 0;
-                    const minutes = parseInt(document.getElementById('minutes').value) || 0;
-                    const seconds = parseInt(document.getElementById('seconds').value) || 0;
-                    missionTime = timeRemaining = hours * 3600 + minutes * 60 + seconds;
-                    missionTimeInput.style.display = 'none';
+                const hours = parseInt(document.getElementById('hours').value) || 0;
+                const minutes = parseInt(document.getElementById('minutes').value) || 0;
+                const seconds = parseInt(document.getElementById('seconds').value) || 0;
+                missionTime = timeRemaining = hours * 3600 + minutes * 60 + seconds;
+
+                if (missionTime === 0) {
+                    timeRemainingContainer.style.display = 'none';
+                } else {
+                    timeRemainingContainer.style.display = 'block';
                 }
+
+                missionTimeInput.style.display = 'none';
                 isRunning = true;
                 startPauseBtn.textContent = 'Pause';
                 timerInterval = setInterval(updateTimer, 1000);
@@ -179,19 +185,23 @@
         }
 
         function updateTimer() {
-            if (timeRemaining > 0) {
+            if (missionTime > 0 && timeRemaining > 0) {
                 timeRemaining--;
-                currentSessionTime++;
-                totalTimeWorked++;
-                updateDisplay();
-            } else {
+            }
+            currentSessionTime++;
+            totalTimeWorked++;
+            updateDisplay();
+
+            if (missionTime > 0 && timeRemaining === 0) {
                 clearInterval(timerInterval);
                 showCongratulations();
             }
         }
 
         function updateDisplay() {
-            timeRemainingEl.textContent = formatTime(timeRemaining);
+            if (missionTime > 0) {
+                timeRemainingEl.textContent = formatTime(timeRemaining);
+            }
             currentSessionTimeEl.textContent = formatTime(currentSessionTime);
             totalTimeWorkedEl.textContent = formatTime(totalTimeWorked);
         }
@@ -209,6 +219,7 @@
             isRunning = false;
             startPauseBtn.textContent = 'Start';
             missionTimeInput.style.display = 'flex';
+            timeRemainingContainer.style.display = 'block';
             updateDisplay();
             congratulationsEl.style.display = 'none';
             timerDisplay.style.display = 'block';
